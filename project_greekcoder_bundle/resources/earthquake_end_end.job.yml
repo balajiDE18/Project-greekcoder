@@ -1,0 +1,30 @@
+resources:
+  jobs:
+    earthquake_end_to_end:
+      name: earthquake_end_to_end
+      tasks:
+        - task_key: earthquake_dataAPI_bronze_pipeline
+          notebook_task:
+            notebook_path: /Workspace/Project-greekcoder/Project-greekcoder/project_greekcoder_bundle/src/notebooks/ingestion_bronze
+            base_parameters:
+              catalog_name: ${var.catalog}
+            source: WORKSPACE
+        - task_key: bronze_silver
+          depends_on:
+            - task_key: earthquake_dataAPI_bronze_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.bronze_silver_etl.id}
+            full_refresh: false
+        - task_key: Earthquake-Dashboard
+          depends_on:
+            - task_key: bronze_silver
+          dashboard_task:
+            subscription: {}
+            warehouse_id: 78835c2d2de3503e
+            dashboard_id: 01f10eefec61194892693271b05eaacd
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog_name
+          default: ${var.catalog}
+      performance_target: PERFORMANCE_OPTIMIZED
